@@ -7,7 +7,13 @@ import vibe.client.module.combat.AutoTotem;
 import vibe.client.module.combat.KillAura;
 import vibe.client.module.combat.TriggerBot;
 import vibe.client.module.hud.ArmorHud;
+import vibe.client.module.combat.BowAimbot;
 import vibe.client.module.combat.Velocity;
+import vibe.client.module.player.AutoArmor;
+import vibe.client.module.player.AutoEat;
+import vibe.client.module.player.AutoSoup;
+import vibe.client.module.player.FastPlace;
+import vibe.client.module.render.FullBright;
 import vibe.client.module.movement.Fly;
 import vibe.client.module.movement.NoFall;
 import vibe.client.module.render.Esp;
@@ -47,7 +53,13 @@ public final class ModuleManager {
             new Fly(),
             new NoFall(),
             new Velocity(),
-            new Esp());
+            new Esp(),
+            new BowAimbot(),
+            new AutoArmor(),
+            new AutoEat(),
+            new AutoSoup(),
+            new FastPlace(),
+            new FullBright());
 
     /** Модуль по классу: для миксинов, которым нужен конкретный модуль. */
     public <T extends Module> T get(Class<T> type) {

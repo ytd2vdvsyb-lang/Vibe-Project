@@ -34,12 +34,28 @@ final class Targets {
 
     /** Поворот {yaw, pitch}, при котором игрок смотрит в центр цели. */
     static float[] rotationTo(LocalPlayer self, Entity target) {
+        return rotationTo(self, target, 0);
+    }
+
+    /** То же, но целимся туда, где цель будет через {@code ticks} тиков, если продолжит бежать так же. */
+    static float[] rotationTo(LocalPlayer self, Entity target, double ticks) {
         Vec3 eye = self.getEyePosition();
-        Vec3 aim = target.getBoundingBox().getCenter();
+        Vec3 aim = target.getBoundingBox().getCenter().add(target.getDeltaMovement().multiply(ticks, 0, ticks));
         double dx = aim.x - eye.x, dy = aim.y - eye.y, dz = aim.z - eye.z;
         float yaw = (float) Math.toDegrees(Math.atan2(dz, dx)) - 90f;
         float pitch = (float) -Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz)));
         return new float[]{yaw, Mth.clamp(pitch, -90f, 90f)};
+    }
+
+    /**
+     * Скорость поворота для режима «Авто»: при большом угле крутим быстрее, вблизи прицела — мягко,
+     * а за быстро бегущей целью — ещё чуть быстрее, чтобы не отставать.
+     */
+    static float autoSpeed(LocalPlayer self, Entity target) {
+        float angle = angleTo(self, target);
+        double targetSpeed = target.getDeltaMovement().horizontalDistance();
+        float speed = 0.2f + angle / 120f + (float) Math.min(0.2, targetSpeed);
+        return Math.max(0.2f, Math.min(0.9f, speed));
     }
 
     static float angleTo(LocalPlayer self, Entity target) {
@@ -51,7 +67,11 @@ final class Targets {
 
     /** Поворачивает голову к цели на долю {@code speed} (1 = сразу). Возвращает угол, что остался. */
     static float turnTowards(LocalPlayer self, Entity target, float speed) {
-        float[] rot = rotationTo(self, target);
+        return turnTowards(self, target, speed, 0);
+    }
+
+    static float turnTowards(LocalPlayer self, Entity target, float speed, double predictTicks) {
+        float[] rot = rotationTo(self, target, predictTicks);
         float yaw = self.getYRot();
         float pitch = self.getXRot();
         self.setYRot(yaw + Mth.wrapDegrees(rot[0] - yaw) * speed);

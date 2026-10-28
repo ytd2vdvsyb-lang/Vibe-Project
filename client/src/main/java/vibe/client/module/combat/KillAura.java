@@ -12,7 +12,7 @@ import vibe.client.util.Actions;
 public final class KillAura extends CheatModule {
     private final TargetSettings targets = new TargetSettings();
     private final NumberSetting range = add(new NumberSetting("Радиус", 3.0, 2.0, 4.5, 0.1));
-    private final ModeSetting rotation = add(new ModeSetting("Поворот", "Плавный", "Резкий", "Нет"));
+    private final ModeSetting rotation = add(new ModeSetting("Поворот", "Авто", "Плавный", "Резкий", "Нет"));
     private final NumberSetting smooth = add(new NumberSetting("Плавность", 0.35, 0.05, 1.0, 0.05));
     private final BoolSetting crits = add(new BoolSetting("Криты прыжком", false));
     private final NumberSetting fov = add(new NumberSetting("Угол обзора", 180, 30, 180, 5));
@@ -29,7 +29,9 @@ public final class KillAura extends CheatModule {
         if (mc.gui.screen() != null) return;
         Targets.nearest(mc, range.get(), fov.floatValue(), targets).ifPresent(target -> {
             float left = 0;
-            if (rotation.is("Плавный")) left = Targets.turnTowards(mc.player, target, smooth.floatValue());
+            if (rotation.is("Авто")) {
+                left = Targets.turnTowards(mc.player, target, Targets.autoSpeed(mc.player, target), 2);
+            } else if (rotation.is("Плавный")) left = Targets.turnTowards(mc.player, target, smooth.floatValue());
             else if (rotation.is("Резкий")) left = Targets.turnTowards(mc.player, target, 1f);
             // С плавным поворотом бьём, только когда уже почти смотрим на цель.
             if (left >= 25f || !Actions.cooledDown(mc)) return;

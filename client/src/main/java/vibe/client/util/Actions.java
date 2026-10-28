@@ -1,7 +1,9 @@
 package vibe.client.util;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.component.SwingAnimation;
 
 /** Действия игрока, общие для модулей. */
 public final class Actions {
@@ -14,6 +16,6 @@ public final class Actions {
 
     public static void attack(Minecraft mc, Entity target) {
         mc.gameMode.attack(mc.player, target);
-        // TODO: взмах рукой; в 26.3 swing принимает ещё SwingAnimation, ждём сигнатуру из probe-api.
+        mc.player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
     }
 }

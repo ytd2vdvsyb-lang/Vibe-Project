@@ -2,7 +2,9 @@
 # Печатает сигнатуры классов Minecraft, которые использует клиент.
 # Помогает чинить сборку после смены версии игры.
 set -u
-jar=$(find ~/.gradle/caches -name 'minecraft-*client*.jar' -o -name 'minecraft-merged*.jar' 2>/dev/null | grep -v sources | head -1)
+mc=$(grep -E '^minecraft_version=' "$(dirname "$0")/../gradle.properties" | cut -d= -f2)
+jar=$(find ~/.gradle/caches/fabric-loom/minecraftMaven -name "minecraft-merged-deobf-$mc.jar" 2>/dev/null | head -1)
+[ -n "$jar" ] || jar=$(find ~/.gradle/caches/fabric-loom/"$mc" -name 'minecraft-merged.jar' 2>/dev/null | head -1)
 echo "Minecraft jar: $jar"
 [ -n "$jar" ] || exit 0
 for cls in \

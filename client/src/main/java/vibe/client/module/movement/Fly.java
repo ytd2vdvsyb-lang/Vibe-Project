@@ -4,10 +4,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
 import vibe.client.module.Category;
 import vibe.client.module.CheatModule;
+import vibe.client.setting.ModeSetting;
 import vibe.client.setting.NumberSetting;
 
 /** Полёт: WASD, пробел вверх, Shift вниз. В воздухе стоишь на месте. */
 public final class Fly extends CheatModule {
+    private final ModeSetting preset = add(new ModeSetting("Пресет", "Легит", "Средний", "Макс", "Свой"));
     private final NumberSetting bps = add(new NumberSetting("Блоков/сек", 10.0, 2.0, 40.0, 1.0));
     private final NumberSetting vertical = add(new NumberSetting("Вверх/вниз", 6.0, 1.0, 20.0, 1.0));
 
@@ -18,10 +20,20 @@ public final class Fly extends CheatModule {
     @Override
     protected void cheatTick(Minecraft mc) {
         Vec3 dir = MoveInput.horizontal(mc);
-        double h = bps.get() / 20.0;
+        double h = blocksPerSecond() / 20.0;
         double v = vertical.get() / 20.0;
         double y = mc.options.keyJump.isDown() ? v : mc.options.keyShift.isDown() ? -v : 0;
         mc.player.setDeltaMovement(dir.x * h, y, dir.z * h);
         mc.player.fallDistance = 0;
+    }
+
+    /** Скорость из пресета или со своего ползунка. */
+    private double blocksPerSecond() {
+        return switch (preset.get()) {
+            case "Легит" -> 8;
+            case "Средний" -> 14;
+            case "Макс" -> 25;
+            default -> bps.get();
+        };
     }
 }

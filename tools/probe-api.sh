@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Ищет в jar Minecraft нужные классы и методы: печатает только совпадения, чтобы лог был коротким.
 set -u
-jar=$(find ~/.gradle/caches -name 'minecraft-*client*.jar' -o -name 'minecraft-merged*.jar' 2>/dev/null | grep -v sources | head -1)
+mc=$(grep -E '^minecraft_version=' "$(dirname "$0")/../gradle.properties" | cut -d= -f2)
+jar=$(find ~/.gradle/caches/fabric-loom/minecraftMaven -name "minecraft-merged-deobf-$mc.jar" 2>/dev/null | head -1)
+[ -n "$jar" ] || jar=$(find ~/.gradle/caches/fabric-loom/"$mc" -name 'minecraft-merged.jar' 2>/dev/null | head -1)
 [ -n "$jar" ] || exit 0
 echo "### all minecraft jars"
 for j in $(find ~/.gradle/caches -name 'minecraft*.jar' 2>/dev/null | grep -v sources); do
@@ -25,6 +27,14 @@ p net.minecraft.client.multiplayer.ClientPacketListener 'handleSetEntityMotion|h
 p net.minecraft.client.multiplayer.MultiPlayerGameMode 'attack|useItem|handleContainerInput|ensureHasSentCarriedItem'
 p net.minecraft.client.Minecraft 'shouldEntityAppearGlowing|startAttack|continueAttack|startUseItem|rightClickDelay|missTime|hitResult|getConnection'
 p net.minecraft.client.renderer.LevelRenderer 'render|extract'
+p net.minecraft.client.renderer.GameRenderer 'Fov|fov|zoom'
+p net.minecraft.client.Camera 'Fov|fov|position|getPosition'
+p net.minecraft.gizmos.Gizmos '.'
+p net.minecraft.gizmos.GizmoStyle '.'
+p net.minecraft.gizmos.GizmoProperties '.'
+p net.minecraft.client.renderer.LevelRenderer 'Gizmo|gizmo|collect'
+p net.minecraft.client.MouseHandler 'turn|sensitivity|accumulated|onMove|smooth'
+p net.minecraft.client.KeyMapping 'setDown|isDown|consumeClick|clickCount|getKey|matches'
 echo "### Minecraft.startAttack swing call"
 javap -c -p -cp "$jar" net.minecraft.client.Minecraft 2>/dev/null | grep -B6 'swing' | head -40
 for c in $(unzip -Z1 "$jar" | grep -E 'SwingAnimation[^$]*\.class$|SetEntityMotionPacket\.class$|ServerboundMovePlayerPacket\.class$|ClientboundExplodePacket\.class$' | sed 's/\.class$//; s#/#.#g'); do

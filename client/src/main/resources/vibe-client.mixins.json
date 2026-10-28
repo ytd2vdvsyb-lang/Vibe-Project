@@ -8,7 +8,9 @@
     "HudMixin",
     "KeyboardHandlerMixin",
     "LocalPlayerMixin",
+    "MinecraftAccessor",
     "MinecraftMixin",
+    "OptionInstanceMixin",
     "TitleScreenMixin"
   ],
   "injectors": {

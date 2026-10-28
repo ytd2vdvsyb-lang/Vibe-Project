@@ -12,6 +12,7 @@ public final class AimAssist extends CheatModule {
     private final NumberSetting range = add(new NumberSetting("Радиус", 4.5, 2.0, 8.0, 0.5));
     private final NumberSetting fov = add(new NumberSetting("Угол обзора", 60, 10, 180, 5));
     private final NumberSetting speed = add(new NumberSetting("Скорость", 0.25, 0.05, 1.0, 0.05));
+    private final BoolSetting auto = add(new BoolSetting("Авто-скорость", true));
     private final BoolSetting onlyAttacking = add(new BoolSetting("Только при атаке", false));
 
     public AimAssist() {
@@ -26,6 +27,9 @@ public final class AimAssist extends CheatModule {
         if (mc.gui.screen() != null) return;
         if (onlyAttacking.on() && !mc.options.keyAttack.isDown()) return;
         Targets.nearest(mc, range.get(), fov.floatValue(), targets)
-                .ifPresent(target -> Targets.turnTowards(mc.player, target, speed.floatValue()));
+                .ifPresent(target -> {
+                    if (auto.on()) Targets.turnTowards(mc.player, target, Targets.autoSpeed(mc.player, target) * speed.floatValue() * 2, 2);
+                    else Targets.turnTowards(mc.player, target, speed.floatValue());
+                });
     }
 }

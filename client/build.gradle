@@ -6,10 +6,22 @@ base {
     archivesName = 'vibe-client'
 }
 
+repositories {
+    exclusiveContent {
+        forRepository { maven { name = 'Modrinth'; url = 'https://api.modrinth.com/maven' } }
+        filter { includeGroup 'maven.modrinth' }
+    }
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+    // Вход на серверы других версий (1.7–26.x). Вшивается внутрь vibe-client.jar, отдельным модом не ставится.
+    // Лицензия GPL-3.0: при раздаче клиента исходники тоже нужно открыть.
+    implementation "maven.modrinth:viafabricplus:${project.viafabricplus_version}"
+    include "maven.modrinth:viafabricplus:${project.viafabricplus_version}"
 }
 
 processResources {
