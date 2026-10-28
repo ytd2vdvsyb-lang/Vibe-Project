@@ -20,6 +20,7 @@ import vibe.client.module.movement.Fly;
 import vibe.client.module.movement.NoFall;
 import vibe.client.module.render.Esp;
 import vibe.client.module.movement.Speed;
+import vibe.client.module.movement.Strafe;
 import vibe.client.module.hud.ClockHud;
 import vibe.client.module.hud.CoordinatesHud;
 import vibe.client.module.hud.CpsHud;
@@ -56,6 +57,7 @@ public final class ModuleManager {
             new KillAura(),
             new AutoTotem(),
             new Speed(),
+            new Strafe(),
             new Fly(),
             new NoFall(),
             new Velocity(),

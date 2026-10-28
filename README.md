@@ -63,7 +63,7 @@ java -jar VibeLauncher.jar --cli --name Steve [--version 1.21.10] [--memory 4096
 | Категория | Модули |
 |---|---|
 | Combat | KillAura (авто-поворот, криты прыжком), TriggerBot, AimAssist, BowAimbot, AutoTotem, Velocity, удар зажатием |
-| Movement | Sprint, Speed и Fly (пресеты Легит/Средний/Макс), NoFall |
+| Movement | Sprint, Speed и Fly (пресеты Легит/Средний/Макс), Strafe, NoFall |
 | Render | ESP, Tracers, FullBright, Zoom (зажать C) |
 | Player | AutoArmor, AutoEat, AutoSoup, FastPlace, авто-возрождение, координаты смерти |
 | HUD | ватермарк, FPS, координаты, CPS, клавиши, часы, броня, эффекты, список модулей, карточка цели |
