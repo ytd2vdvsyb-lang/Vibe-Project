@@ -19,6 +19,7 @@ public final class VibeMenuScreen extends Screen {
     private static final int PANEL = 0xD0101018;
 
     private HudModule dragging;
+    private int columns = 1;
     private double dragOffsetX;
     private double dragOffsetY;
 
@@ -29,15 +30,18 @@ public final class VibeMenuScreen extends Screen {
     @Override
     protected void init() {
         List<Module> modules = VibeClient.get().modules().all();
-        int left = width - BUTTON_WIDTH - 12;
         int top = 36;
+        int perColumn = Math.max(1, (height - top - BUTTON_HEIGHT - 20) / (BUTTON_HEIGHT + 4));
+        columns = (modules.size() + perColumn - 1) / perColumn;
+        int left = width - BUTTON_WIDTH - 12;
         for (int i = 0; i < modules.size(); i++) {
             Module module = modules.get(i);
+            int x = width - (columns - i / perColumn) * (BUTTON_WIDTH + 6) - 6;
             Button button = Button.builder(label(module), b -> {
                         module.toggle();
                         b.setMessage(label(module));
                     })
-                    .bounds(left, top + i * (BUTTON_HEIGHT + 4), BUTTON_WIDTH, BUTTON_HEIGHT)
+                    .bounds(x, top + i % perColumn * (BUTTON_HEIGHT + 4), BUTTON_WIDTH, BUTTON_HEIGHT)
                     .tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(module.description())))
                     .build();
             addRenderableWidget(button);
@@ -54,7 +58,7 @@ public final class VibeMenuScreen extends Screen {
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         Minecraft mc = Minecraft.getInstance();
-        int panelLeft = width - BUTTON_WIDTH - 24;
+        int panelLeft = width - columns * (BUTTON_WIDTH + 6) - 12;
         graphics.fill(panelLeft, 0, width, height, PANEL);
         graphics.text(font, Component.literal(VibeClient.NAME), panelLeft + 12, 14, HudModule.ACCENT, true);
         graphics.text(font, Component.literal("Перетаскивай блоки HUD мышью"), 8, height - 16, HudModule.TEXT, true);

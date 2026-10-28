@@ -2,6 +2,10 @@ package vibe.client.module;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import vibe.client.module.combat.AimAssist;
+import vibe.client.module.combat.AutoTotem;
+import vibe.client.module.combat.KillAura;
+import vibe.client.module.combat.TriggerBot;
 import vibe.client.module.hud.ArmorHud;
 import vibe.client.module.hud.ClockHud;
 import vibe.client.module.hud.CoordinatesHud;
@@ -28,7 +32,12 @@ public final class ModuleManager {
             new ModuleListHud(),
             new ToggleSprint(),
             new AutoRespawn(),
-            new DeathCoords());
+            new DeathCoords(),
+            new HoldAttack(),
+            new AimAssist(),
+            new TriggerBot(),
+            new KillAura(),
+            new AutoTotem());
 
     public List<Module> all() {
         return modules;
