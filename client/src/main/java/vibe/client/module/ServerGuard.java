@@ -11,8 +11,19 @@ import java.util.Set;
  * и на HvH-серверах, где читы разрешены правилами.
  */
 public final class ServerGuard {
-    /** Адреса HvH-серверов (без порта, в нижнем регистре). Поддомены тоже подходят. */
-    private static final Set<String> HVH_SERVERS = Set.of();
+    /**
+     * HvH-серверы, где читы прямо разрешены в описании (без порта, в нижнем регистре).
+     * Поддомены подходят, поэтому для бесплатных хостингов пишем полный адрес сервера.
+     */
+    private static final Set<String> HVH_SERVERS = Set.of(
+            // "Cheats are allowed, which defines the HvH format" (mc.bestgames.to/servers/1839)
+            "bravohvh.fun",
+            // "Our Server Allows the Following: Cheating, Modifications" (minecraftiplist.com)
+            "hvhcentral.falixsrv.me",
+            // "focused around HvH Hacker vs. Hacker... absolutely no anti-cheat" (minecraftiplist.com)
+            "207.244.242.28",
+            // "you can hack backdoor kill, grief and anything you want" (minecraftiplist.com)
+            "supernova.aternos.me");
 
     private ServerGuard() {
     }
