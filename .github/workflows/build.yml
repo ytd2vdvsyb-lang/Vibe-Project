@@ -80,6 +80,11 @@ jobs:
           export LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=4.6 SDL_VIDEODRIVER=x11 SDL_VIDEO_FORCE_EGL=1 SDL_VIDEO_X11_FORCE_EGL=1 EGL_PLATFORM=x11
           set +e
           xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render -noreset" sh -c "glxinfo -B | head -20; glxinfo -v | grep -m3 -i visual"
+          # Без видеокарты размытие фона в меню рисуется минутами, а при первом запуске
+          # вместо главного меню показывается экран настроек доступности: отключаем и то, и другое.
+          mkdir -p client/run
+          printf '%s\n' 'onboardAccessibility:false' 'menuBackgroundBlurriness:0' 'renderDistance:2' \
+            'simulationDistance:5' 'narrator:0' 'soundCategory_master:0.0' > client/run/options.txt
           # Если игра застрянет, через 7 минут печатаем дамп потоков, чтобы было видно где.
           (sleep 420; pkill -QUIT -f devlaunchinjector || true) &
           timeout 600 xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render -noreset" ./gradlew :client:runClient --no-daemon > run.log 2>&1
