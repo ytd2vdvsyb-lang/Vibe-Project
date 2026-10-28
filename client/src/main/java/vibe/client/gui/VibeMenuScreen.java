@@ -243,6 +243,8 @@ public final class VibeMenuScreen extends Screen {
         hits.add(new Hit(x, y, w, CARD, b -> {
             if (b == 0) module.toggle();
             else if (b == 1) toggleExpanded(module);
+            // Для разбора жалоб «не включается»: видно кнопку и итог в логе лаунчера.
+            VibeClient.LOG.info("Меню: кнопка {} по «{}», включён: {}", b, module.name(), module.isEnabled());
         }));
     }
 
