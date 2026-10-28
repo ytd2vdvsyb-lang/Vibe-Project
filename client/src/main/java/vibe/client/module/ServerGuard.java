@@ -18,6 +18,8 @@ public final class ServerGuard {
     private static final Set<String> HVH_SERVERS = Set.of(
             // "Cheats are allowed, which defines the HvH format" (mc.bestgames.to/servers/1839)
             "bravohvh.fun",
+            // Прислал Тимур: HvH-сервер, на нём читы часть формата.
+            "metahvh.su",
             // "Our Server Allows the Following: Cheating, Modifications" (minecraftiplist.com)
             "hvhcentral.falixsrv.me",
             // "focused around HvH Hacker vs. Hacker... absolutely no anti-cheat" (minecraftiplist.com)
