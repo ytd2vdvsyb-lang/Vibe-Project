@@ -4,7 +4,7 @@ import vibe.client.module.Category;
 import vibe.client.module.Module;
 import vibe.client.setting.NumberSetting;
 
-/** Зум, пока зажата клавиша C. Само приближение делает CameraMixin. */
+/** Зум, пока зажата клавиша C. Само приближение делает OptionInstanceMixin через настройку FOV. */
 public final class Zoom extends Module {
     public static final int KEY_C = 67;
     private final NumberSetting factor = add(new NumberSetting("Приближение", 4, 2, 10, 0.5));

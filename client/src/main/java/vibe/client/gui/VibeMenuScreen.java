@@ -136,7 +136,7 @@ public final class VibeMenuScreen extends Screen {
 
         String hint = binding != null
                 ? "Нажми клавишу для «" + binding.name() + "»  (Esc или Delete — убрать)"
-                : "Клик — вкл/выкл     «+» или ПКМ — настройки и клавиша     Правый Shift — закрыть";
+                : "Клик — вкл/выкл     «+» — настройки и клавиша     Правый Shift — закрыть";
         g.text(font, hint, x + (w - font.width(hint)) / 2, y + h + 5, binding != null ? accent : Theme.MUTED, true);
         super.extractRenderState(g, mouseX, mouseY, delta);
     }
@@ -248,8 +248,8 @@ public final class VibeMenuScreen extends Screen {
         // «+» добавляется раньше карточки, поэтому клик по нему не включает модуль.
         hits.add(new Hit(ex, y, EXPAND, CARD, b -> toggleExpanded(module)));
         hits.add(new Hit(x, y, w, CARD, b -> {
-            if (b == 0) module.toggle();
-            else if (b == 1) toggleExpanded(module);
+            // Любая кнопка включает: на тачпадах Mac обычный клик иногда приходит как правый.
+            module.toggle();
             // Для разбора жалоб «не включается»: видно кнопку и итог в логе лаунчера.
             VibeClient.LOG.info("Меню: кнопка {} по «{}», включён: {}", b, module.name(), module.isEnabled());
         }));
@@ -283,7 +283,7 @@ public final class VibeMenuScreen extends Screen {
         } else if (setting instanceof ModeSetting mode) {
             String value = "< " + mode.display() + " >";
             g.text(font, value, right - font.width(value), y + 4, accent, false);
-            hits.add(new Hit(x, y, w, SETTING, b -> mode.cycle(b == 1 ? -1 : 1)));
+            hits.add(new Hit(x, y, w, SETTING, b -> mode.cycle(1)));
         }
     }
 
@@ -294,8 +294,7 @@ public final class VibeMenuScreen extends Screen {
         String key = waiting ? "нажми клавишу..." : Keys.name(module.key());
         g.text(font, key, x + w - 8 - font.width(key), y + 4, waiting ? accent : Theme.TEXT, false);
         hits.add(new Hit(x, y, w, SETTING, b -> {
-            if (b == 0) binding = module;
-            else module.setKey(-1);
+            binding = module;
         }));
     }
 
