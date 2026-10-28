@@ -16,6 +16,14 @@ for cls in \
   net.minecraft.client.KeyboardHandler \
   com.mojang.blaze3d.platform.InputConstants \
   net.minecraft.client.renderer.GameRenderer \
+  net.minecraft.client.OptionInstance \
+  net.minecraft.client.gui.screens.DeathScreen \
+  net.minecraft.world.effect.MobEffectInstance \
+  net.minecraft.world.entity.player.Player \
+  net.minecraft.client.gui.components.ChatComponent \
+  net.minecraft.client.renderer.LightmapRenderStateExtractor \
+  net.minecraft.client.renderer.ScreenEffectRenderer \
+  net.minecraft.client.Camera \
   net.minecraft.client.Options \
   net.minecraft.client.player.LocalPlayer \
   net.minecraft.client.input.KeyEvent \

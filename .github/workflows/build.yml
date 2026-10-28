@@ -35,7 +35,7 @@ jobs:
 
       # Короткая сводка в самом конце лога, чтобы ошибки было легко найти.
       - name: Dump Minecraft API signatures
-        if: failure()
+        if: failure() || contains(github.event.head_commit.message, '[dump]')
         run: tools/dump-api.sh
 
       - name: Error summary

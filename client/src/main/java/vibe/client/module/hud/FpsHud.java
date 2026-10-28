@@ -5,7 +5,7 @@ import vibe.client.module.TextHudModule;
 
 public final class FpsHud extends TextHudModule {
     public FpsHud() {
-        super("fps", "FPS", "Кадры в секунду", true, 4, 4);
+        super("fps", "FPS", "Кадры в секунду", false, 4, 22);
     }
 
     @Override
