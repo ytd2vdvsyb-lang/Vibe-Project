@@ -40,6 +40,10 @@ jobs:
         if: failure() || contains(github.event.head_commit.message, '[dump]')
         run: tools/dump-api.sh
 
+      - name: Probe API
+        if: failure() || contains(github.event.head_commit.message, '[dump]')
+        run: tools/probe-api.sh
+
       - name: Error summary
         if: failure()
         run: grep -E -A4 'error:|What went wrong' build.log | head -150 || true

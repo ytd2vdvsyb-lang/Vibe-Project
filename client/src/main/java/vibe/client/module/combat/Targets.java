@@ -3,11 +3,12 @@ package vibe.client.module.combat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.phys.Vec3;
+
+import vibe.client.util.Actions;
 
 import java.util.Comparator;
 import java.util.Optional;
@@ -53,7 +54,6 @@ final class Targets {
     }
 
     static void attack(Minecraft mc, Entity target) {
-        mc.gameMode.attack(mc.player, target);
-        mc.player.swing(InteractionHand.MAIN_HAND);
+        Actions.attack(mc, target);
     }
 }

@@ -1,8 +1,8 @@
 package vibe.client.module;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.EntityHitResult;
+import vibe.client.util.Actions;
 
 /**
  * Для тачпада: пока зажата кнопка атаки, удар повторяется по цели под прицелом,
@@ -16,10 +16,9 @@ public final class HoldAttack extends Module {
     @Override
     public void tick(Minecraft mc) {
         if (mc.player == null || mc.gui.screen() != null || !mc.options.keyAttack.isDown()) return;
-        if (mc.player.getAttackStrengthScale(0.5f) < 1f) return;
+        if (!Actions.cooledDown(mc)) return;
         if (mc.hitResult instanceof EntityHitResult hit && hit.getEntity().isAlive()) {
-            mc.gameMode.attack(mc.player, hit.getEntity());
-            mc.player.swing(InteractionHand.MAIN_HAND);
+            Actions.attack(mc, hit.getEntity());
         }
     }
 }
