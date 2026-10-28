@@ -372,16 +372,30 @@ public final class LauncherFrame extends JFrame {
 
     private void showLog() {
         JDialog dialog = new JDialog(this, "Лог Vibe Client");
-        logArea.setEditable(false);
-        logArea.setBackground(Theme.BACKGROUND);
-        logArea.setForeground(Theme.TEXT);
-        logArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-        JScrollPane scroll = new JScrollPane(logArea);
+        // Лог самой игры пишется в файл, даже если лаунчер закрывался: показываем его, а под ним вывод лаунчера.
+        JTextArea area = new JTextArea(gameLog() + "\n== Лаунчер ==\n" + logArea.getText());
+        area.setEditable(false);
+        area.setBackground(Theme.BACKGROUND);
+        area.setForeground(Theme.TEXT);
+        area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        area.setCaretPosition(area.getDocument().getLength());
+        JScrollPane scroll = new JScrollPane(area);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         dialog.setContentPane(scroll);
         dialog.setSize(900, 500);
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
+    }
+
+    /** Конец logs/latest.log игры или пояснение, если игру ещё не запускали. */
+    private String gameLog() {
+        java.nio.file.Path file = dirs.game.resolve("logs").resolve("latest.log");
+        try {
+            String text = java.nio.file.Files.readString(file, java.nio.charset.StandardCharsets.UTF_8);
+            return "== Игра: " + file + " ==\n" + (text.length() > LOG_LIMIT ? text.substring(text.length() - LOG_LIMIT) : text);
+        } catch (java.io.IOException | java.io.UncheckedIOException e) {
+            return "== Игра ещё не запускалась (нет " + file + ") ==";
+        }
     }
 
     private void setStatus(String text, boolean error) {
