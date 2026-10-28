@@ -8,6 +8,12 @@ on:
 permissions:
   contents: read
 
+# Новый push отменяет старую сборку той же ветки: иначе две сборки одновременно
+# пересоздают релиз nightly и одна из них падает.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
