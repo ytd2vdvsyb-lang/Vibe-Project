@@ -25,7 +25,16 @@
 | macOS | `~/Library/Application Support/vibeclient` |
 | Linux | `~/.vibeclient` |
 
-Пока поддерживается только офлайн-аккаунт (одиночная игра и сервера без лицензии). Вход через Microsoft добавим отдельно.
+### Аккаунты
+
+- **По нику (офлайн)**: одиночная игра и сервера без лицензии.
+- **Microsoft (лицензия)**: кнопка «Войти через Microsoft». Нужен свой client id приложения Azure:
+  1. Зарегистрируй приложение на portal.azure.com (App registrations), тип аккаунтов «Personal Microsoft accounts only»,
+     включи «Allow public client flows».
+  2. Подай заявку Mojang на доступ к Minecraft API для этого приложения (форма по ссылке в
+     [Minecraft Help](https://help.minecraft.net/hc/en-us/articles/16254801392141)). Без одобрения вход
+     дойдёт до последнего шага и получит отказ.
+  3. Впиши client id в `settings.json` лаунчера (`"msClientId": "..."`) или передай `-Dvibe.msClientId=...`.
 
 ### Сборка
 
@@ -43,5 +52,18 @@ java -jar VibeLauncher.jar --cli --name Steve [--version 1.21.10] [--memory 4096
 
 ## Клиент
 
-В разработке. Готовый jar клиента вшивается в лаунчер как ресурс `client/vibe-client.jar`
-и при каждом запуске копируется в папку `mods`.
+Папка `client/`. Minecraft 26.3, Fabric. Собственный код, без чужих исходников.
+
+- HUD: FPS, координаты с направлением, CPS, нажатые клавиши, часы.
+- Авто-бег.
+- Меню на **Right Shift**: включение модулей и перетаскивание HUD мышью. Настройки в `config/vibe-client.json`.
+- «Vibe Client» в заголовке окна и на главном экране.
+
+Собранный клиент вшивается в лаунчер (`client/vibe-client.jar`) и при каждом запуске копируется в `mods`.
+
+Версии игры, Fabric и Fabric API лежат в `gradle.properties`.
+
+## Сборка в GitHub Actions
+
+Каждый push собирает лаунчер и клиент, запускает игру в виртуальном экране для проверки
+и выкладывает `VibeLauncher.jar` в артефакты сборки (вкладка Actions).
