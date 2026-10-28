@@ -31,6 +31,8 @@ public final class VibeMenuScreen extends Screen {
     private static final int HEADER = 16;
     private static final int ROW = 14;
     private static final int SETTING_ROW = 12;
+    /** Зона «+» справа в строке модуля: обычный клик по ней раскрывает настройки (на тачпаде ПКМ неочевиден). */
+    private static final int EXPAND_ZONE = 16;
 
     private static final int SHADE = 0x60000000;
     private static final int HEADER_COLOR = 0xF0261A3D;
@@ -96,7 +98,7 @@ public final class VibeMenuScreen extends Screen {
         String hint = binding != null
                 ? "Нажми клавишу для " + binding.name() + " (Esc или Delete — убрать)"
                 : hovered != null ? hovered.description()
-                : "ЛКМ — вкл/выкл, ПКМ — настройки, блоки HUD можно двигать мышью";
+                : "Клик — вкл/выкл, «+» — настройки и клавиша, HUD двигается мышью";
         g.text(font, hint, 6, height - 14, binding != null ? HudModule.ACCENT : HudModule.TEXT, true);
         super.extractRenderState(g, mouseX, mouseY, delta);
     }
@@ -119,7 +121,10 @@ public final class VibeMenuScreen extends Screen {
             if (hover) g.fill(x, y, x + PANEL_WIDTH, y + ROW, HOVER);
             boolean locked = module instanceof CheatModule && mc.player != null && !CheatModule.allowed(mc);
             g.text(font, module.name(), x + 5, y + 3, locked ? LOCKED : HudModule.TEXT, true);
-            g.text(font, EXPANDED.contains(module) ? "-" : "+", x + PANEL_WIDTH - 9, y + 3, MUTED, false);
+            boolean overExpand = hover && mouseX >= x + PANEL_WIDTH - EXPAND_ZONE;
+            if (overExpand) g.fill(x + PANEL_WIDTH - EXPAND_ZONE, y, x + PANEL_WIDTH, y + ROW, HOVER);
+            g.text(font, EXPANDED.contains(module) ? "-" : "+", x + PANEL_WIDTH - 10, y + 3,
+                    overExpand ? HudModule.TEXT : MUTED, false);
             y += ROW;
             if (EXPANDED.contains(module)) y = renderSettings(g, module, x, y, mouseX, mouseY);
         }
@@ -199,8 +204,12 @@ public final class VibeMenuScreen extends Screen {
         y += HEADER;
         for (Module module : modules(category)) {
             if (inside(mx, my, x, y, PANEL_WIDTH, ROW)) {
-                if (button == 0) module.toggle();
-                else if (button == 1 && !EXPANDED.remove(module)) EXPANDED.add(module);
+                boolean expand = button == 1 || button == 0 && mx >= x + PANEL_WIDTH - EXPAND_ZONE;
+                if (expand) {
+                    if (!EXPANDED.remove(module)) EXPANDED.add(module);
+                } else if (button == 0) {
+                    module.toggle();
+                }
                 return true;
             }
             y += ROW;
