@@ -59,9 +59,6 @@ jobs:
   smoke:
     needs: build
     runs-on: ubuntu-latest
-    # Пока игра на виртуальном экране без видеокарты не доходит до меню, тест только сообщает
-    # результат и не красит всю сборку: иначе каждый push присылает письмо «Run failed».
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -86,8 +83,12 @@ jobs:
           printf '%s\n' 'onboardAccessibility:false' 'menuBackgroundBlurriness:0' 'renderDistance:2' \
             'simulationDistance:5' 'narrator:0' 'soundCategory_master:0.0' > client/run/options.txt
           # Если игра застрянет, через 7 минут печатаем дамп потоков, чтобы было видно где.
-          (sleep 420; pkill -QUIT -f devlaunchinjector || true) &
+          (sleep 420; pkill -QUIT -f devlaunchinjector || true) & dump=$!
+          # Как только меню открылось, ждём ещё 20 секунд (ловим ошибки отрисовки меню) и закрываем игру,
+          # чтобы тест не сидел до таймаута.
+          (until grep -q "Главное меню открыто" run.log 2>/dev/null; do sleep 5; done; sleep 20; pkill -f devlaunchinjector || true) & stop=$!
           timeout 600 xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render -noreset" ./gradlew :client:runClient --no-daemon > run.log 2>&1
+          pkill -P "$dump" 2>/dev/null; pkill -P "$stop" 2>/dev/null; kill "$dump" "$stop" 2>/dev/null
           set -e
           echo "----- important lines -----"
           grep -E "Vibe Client|ViaFabricPlus|Mixin|mixin|Exception|ERROR|Caused by|Sound engine|Backend|OpenGL|Главное меню" run.log | grep -v DEBUG | head -80
