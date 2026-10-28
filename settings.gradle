@@ -1,0 +1,3 @@
+rootProject.name = 'vibe-client'
+
+include 'launcher'
