@@ -14,6 +14,8 @@ import vibe.client.module.player.AutoEat;
 import vibe.client.module.player.AutoSoup;
 import vibe.client.module.player.FastPlace;
 import vibe.client.module.render.FullBright;
+import vibe.client.module.render.Tracers;
+import vibe.client.module.render.Zoom;
 import vibe.client.module.movement.Fly;
 import vibe.client.module.movement.NoFall;
 import vibe.client.module.render.Esp;
@@ -25,6 +27,7 @@ import vibe.client.module.hud.EffectsHud;
 import vibe.client.module.hud.FpsHud;
 import vibe.client.module.hud.KeystrokesHud;
 import vibe.client.module.hud.ModuleListHud;
+import vibe.client.module.hud.TargetHud;
 import vibe.client.module.hud.WatermarkHud;
 
 import java.util.List;
@@ -41,6 +44,7 @@ public final class ModuleManager {
             new ArmorHud(),
             new EffectsHud(),
             new ModuleListHud(),
+            new TargetHud(),
             new ToggleSprint(),
             new AutoRespawn(),
             new DeathCoords(),
@@ -59,7 +63,9 @@ public final class ModuleManager {
             new AutoEat(),
             new AutoSoup(),
             new FastPlace(),
-            new FullBright());
+            new FullBright(),
+            new Zoom(),
+            new Tracers());
 
     /** Модуль по классу: для миксинов, которым нужен конкретный модуль. */
     public <T extends Module> T get(Class<T> type) {

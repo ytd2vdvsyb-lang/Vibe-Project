@@ -4,6 +4,7 @@
   "package": "vibe.client.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
+    "CameraMixin",
     "ClientPacketListenerMixin",
     "HudMixin",
     "KeyboardHandlerMixin",

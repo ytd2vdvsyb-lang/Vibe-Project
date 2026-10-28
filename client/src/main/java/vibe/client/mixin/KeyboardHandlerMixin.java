@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import vibe.client.VibeClient;
 import vibe.client.gui.VibeMenuScreen;
 import vibe.client.module.Module;
+import vibe.client.module.render.Zoom;
 
 @Mixin(KeyboardHandler.class)
 public abstract class KeyboardHandlerMixin {
@@ -26,6 +27,9 @@ public abstract class KeyboardHandlerMixin {
             mc.gui.setScreen(new VibeMenuScreen());
             ci.cancel();
             return;
+        }
+        if (event.key() == Zoom.KEY_C) {
+            VibeClient.get().modules().get(Zoom.class).setHeld(action != 0 && mc.gui.screen() == null);
         }
         // Клавиши модулей работают только в самой игре, не в чате и не в меню.
         if (action == PRESS && mc.gui.screen() == null && mc.player != null) {
