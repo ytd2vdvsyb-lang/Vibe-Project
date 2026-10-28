@@ -66,6 +66,11 @@ public final class VibeMenuScreen extends Screen {
     private double pressX;
     private double pressY;
     private Module binding;
+    /** Курсор последнего кадра: по нему же рисуется подсветка, так что клик попадает туда, что видно. */
+    private int lastMouseX = -1;
+    private int lastMouseY = -1;
+    private long lastClickTime;
+    private int lastClickButton = -1;
 
     private record Hit(int x, int y, int w, int h, IntConsumer action) {
         boolean contains(double mx, double my) {
@@ -97,6 +102,8 @@ public final class VibeMenuScreen extends Screen {
         long now = System.currentTimeMillis();
         float dt = lastFrame == 0 ? 0 : Math.min(100, now - lastFrame);
         lastFrame = now;
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
         fade = Draw.approach(fade, 1, dt, 70);
         int accent = Theme.accent();
 
@@ -327,8 +334,16 @@ public final class VibeMenuScreen extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        double mx = event.x(), my = event.y();
         int button = event.button();
+        long now = System.currentTimeMillis();
+        VibeClient.LOG.info("Меню: клик кнопкой {} в ({}, {}), курсор кадра ({}, {}), двойной: {}",
+                button, Math.round(event.x()), Math.round(event.y()), lastMouseX, lastMouseY, doubleClick);
+        // Один клик тачпада не должен срабатывать дважды: иначе модуль включается и тут же выключается.
+        if (button == lastClickButton && now - lastClickTime < 120) return true;
+        lastClickButton = button;
+        lastClickTime = now;
+        double mx = lastMouseX >= 0 ? lastMouseX : event.x();
+        double my = lastMouseY >= 0 ? lastMouseY : event.y();
         binding = null;
         pressX = mx;
         pressY = my;
