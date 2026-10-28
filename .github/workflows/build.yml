@@ -35,6 +35,12 @@ jobs:
           set -o pipefail
           ./gradlew build 2>&1 | tee build.log
 
+      # ViaFabricPlus должен лежать внутри клиента, который вшит в лаунчер.
+      - name: Check bundled client
+        run: |
+          unzip -p launcher/build/libs/VibeLauncher.jar client/vibe-client.jar > bundled.jar
+          unzip -l bundled.jar | grep 'META-INF/jars/' || echo "::warning::В клиенте внутри лаунчера нет вложенных jar (ViaFabricPlus)"
+
       # Короткая сводка в самом конце лога, чтобы ошибки было легко найти.
       - name: Dump Minecraft API signatures
         if: failure() || contains(github.event.head_commit.message, '[dump]')
