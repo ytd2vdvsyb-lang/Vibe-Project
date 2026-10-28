@@ -91,10 +91,99 @@ jobs:
           grep -q "Главное меню открыто" run.log
           ! grep -qE "MixinApplyError|InvalidInjectionException|Mixin transformation of .* failed|Minecraft has crashed|---- Minecraft Crash Report" run.log
 
-  # Приложение для macOS со встроенной Java: Java ставить не нужно.
-  macos:
+  # Приложение для macOS без Mac-сервера: .app со встроенной Java для Apple Silicon и Intel.
+  macos-app:
     needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: VibeClient
+          path: artifact
+
+      - name: Build Vibe Client.app
+        run: |
+          set -eu
+          app="dist/Vibe Client.app/Contents"
+          mkdir -p "$app/MacOS" "$app/Resources"
+          cp artifact/launcher/build/libs/VibeLauncher.jar "$app/Resources/"
+          for arch in aarch64 x64; do
+            curl -fsSL -o jre-$arch.tar.gz "https://api.adoptium.net/v3/binary/latest/21/ga/mac/$arch/jre/hotspot/normal/eclipse"
+            mkdir -p jre-$arch && tar -xzf jre-$arch.tar.gz -C jre-$arch --strip-components=1
+            mv jre-$arch "$app/Resources/jre-$arch"
+          done
+          sudo apt-get install -y -qq icnsutils > /dev/null && png2icns "$app/Resources/VibeClient.icns" client/src/main/resources/assets/vibe-client/icon.png || true
+          cat > "$app/MacOS/VibeClient" <<'SH'
+          #!/bin/sh
+          # Запускает лаунчер на встроенной Java под процессор этого Mac.
+          dir="$(cd "$(dirname "$0")/.." && pwd)"
+          case "$(uname -m)" in arm64) jre="$dir/Resources/jre-aarch64" ;; *) jre="$dir/Resources/jre-x64" ;; esac
+          exec "$jre/Contents/Home/bin/java" -Dapple.awt.application.name=VibeClient -Xdock:name="Vibe Client" \
+            -Xdock:icon="$dir/Resources/VibeClient.icns" -jar "$dir/Resources/VibeLauncher.jar" "$@"
+          SH
+          sed -i 's/^          //' "$app/MacOS/VibeClient"
+          chmod +x "$app/MacOS/VibeClient"
+          cat > "$app/Info.plist" <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>CFBundleName</key><string>Vibe Client</string>
+            <key>CFBundleDisplayName</key><string>Vibe Client</string>
+            <key>CFBundleIdentifier</key><string>vibe.client.launcher</string>
+            <key>CFBundleVersion</key><string>1.0.0</string>
+            <key>CFBundleShortVersionString</key><string>1.0.0</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+            <key>CFBundleExecutable</key><string>VibeClient</string>
+            <key>CFBundleIconFile</key><string>VibeClient.icns</string>
+            <key>LSMinimumSystemVersion</key><string>11.0</string>
+            <key>NSHighResolutionCapable</key><true/>
+          </dict></plist>
+          PLIST
+          sed -i 's/^          //' "$app/Info.plist"
+          head -3 "$app/MacOS/VibeClient"
+          (cd dist && zip -qry ../VibeClient-mac.zip "Vibe Client.app")
+          ls -la VibeClient-mac.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VibeClient-mac-app
+          path: VibeClient-mac.zip
+
+  # Свежая сборка в Releases, чтобы скачать по прямой ссылке.
+  release:
+    needs: [build, macos-app]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/claude/project-thread-47mu48'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Publish nightly release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          find artifacts -type f
+          gh release delete nightly --yes --cleanup-tag || true
+          gh release create nightly --prerelease --target "${{ github.sha }}" \
+            --title "Vibe Client (свежая сборка)" \
+            --notes "Автосборка из ${{ github.sha }}. macOS: VibeClient-mac.zip (распаковать и перетащить в Программы) или VibeClient.dmg, когда он появится. Другие системы: VibeLauncher.jar (нужна Java 17+)." \
+            artifacts/VibeClient-mac-app/VibeClient-mac.zip \
+            artifacts/VibeClient/launcher/build/libs/VibeLauncher.jar
+
+  # Приложение для macOS со встроенной Java: Java ставить не нужно.
+  # Mac-серверов на GitHub бывает мало: dmg собирается после релиза и докладывается в него,
+  # а пока его нет, в релизе уже лежит VibeClient-mac.zip, собранный на Linux.
+  macos:
+    needs: release
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -133,32 +222,8 @@ jobs:
           mv dist/*.dmg dist/VibeClient.dmg
           ls -la dist
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: VibeClient-macOS
-          path: dist/VibeClient.dmg
-
-  # Свежая сборка в Releases, чтобы скачать по прямой ссылке.
-  release:
-    needs: [build, macos]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/claude/project-thread-47mu48'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Publish nightly release
+      - name: Add dmg to the release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: |
-          find artifacts -type f
-          gh release delete nightly --yes --cleanup-tag || true
-          gh release create nightly --prerelease --target "${{ github.sha }}" \
-            --title "Vibe Client (свежая сборка)" \
-            --notes "Автосборка из ${{ github.sha }}. macOS: VibeClient.dmg. Другие системы: VibeLauncher.jar (нужна Java 17+)." \
-            artifacts/VibeClient-macOS/VibeClient.dmg \
-            artifacts/VibeClient/launcher/build/libs/VibeLauncher.jar
+        run: gh release upload nightly dist/VibeClient.dmg --clobber
