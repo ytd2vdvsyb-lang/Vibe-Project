@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
+import vibe.client.gui.Draw;
 import vibe.client.module.HudModule;
 
 import java.util.Comparator;
@@ -43,8 +44,8 @@ public final class TargetHud extends HudModule {
         LivingEntity target = target(mc);
         if (target == null) return;
         int x = x(), y = y();
-        g.fill(x, y, x + WIDTH, y + HEIGHT, BACKGROUND);
-        g.fill(x, y, x + 2, y + HEIGHT, ACCENT);
+        panel(g, x, y, WIDTH, HEIGHT);
+        g.fill(x + 1, y + 4, x + 2, y + HEIGHT - 4, accent());
         g.text(mc.font, target.getName().getString(), x + 7, y + 4, TEXT, true);
 
         float health = target.getHealth() + target.getAbsorptionAmount();
@@ -55,8 +56,9 @@ public final class TargetHud extends HudModule {
         int barLeft = x + 7, barRight = x + WIDTH - 5, barY = y + 16;
         float fraction = Math.max(0, Math.min(1, target.getHealth() / max));
         int color = fraction > 0.5f ? 0xFF4ADE80 : fraction > 0.25f ? 0xFFFACC15 : 0xFFF87171;
-        g.fill(barLeft, barY, barRight, barY + 4, 0xFF2A2A3A);
-        g.fill(barLeft, barY, barLeft + (int) ((barRight - barLeft) * fraction), barY + 4, color);
+        Draw.round(g, barLeft, barY, barRight - barLeft, 4, 2, 0xFF2A2A3A);
+        int filled = (int) ((barRight - barLeft) * fraction);
+        if (filled >= 2) Draw.round(g, barLeft, barY, filled, 4, 2, Draw.mix(color, accent(), 0.25f));
 
         String info = String.format(Locale.ROOT, "%.1f м  броня %d", mc.player.distanceTo(target), target.getArmorValue());
         g.text(mc.font, info, x + 7, y + 23, 0xFF8A8A9A, false);

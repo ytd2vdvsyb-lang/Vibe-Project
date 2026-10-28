@@ -30,7 +30,7 @@ public final class ArmorHud extends HudModule {
     @Override
     public void render(GuiGraphicsExtractor g, Minecraft mc) {
         if (mc.player == null) return;
-        g.fill(x(), y(), x() + width(mc), y() + height(mc), BACKGROUND);
+        panel(g, x(), y(), width(mc), height(mc));
         int rowY = y() + PADDING;
         for (EquipmentSlot slot : SLOTS) {
             ItemStack stack = mc.player.getItemBySlot(slot);

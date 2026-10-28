@@ -10,7 +10,6 @@ import vibe.client.module.HudModule;
 public final class KeystrokesHud extends HudModule {
     private static final int KEY = 22;
     private static final int GAP = 2;
-    private static final int PRESSED = 0xE0A78BFA;
 
     public KeystrokesHud() {
         super("keystrokes", "Клавиши", "Нажатые WASD и кнопки мыши", false, 4, 80);
@@ -42,7 +41,7 @@ public final class KeystrokesHud extends HudModule {
 
     private static void key(GuiGraphicsExtractor g, Minecraft mc, KeyMapping mapping, String label, int x, int y, int w, int h) {
         boolean down = mapping.isDown();
-        g.fill(x, y, x + w, y + h, down ? PRESSED : BACKGROUND);
+        vibe.client.gui.Draw.round(g, x, y, w, h, 3, down ? vibe.client.gui.Draw.alpha(accent(), 0.85f) : BACKGROUND);
         int textX = x + (w - mc.font.width(label)) / 2;
         int textY = y + (h - mc.font.lineHeight) / 2 + 1;
         g.text(mc.font, Component.literal(label), textX, textY, TEXT, false);

@@ -2,13 +2,15 @@ package vibe.client.module;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import vibe.client.gui.Draw;
+import vibe.client.gui.Theme;
 
 /** Модуль, который рисует блок на экране. Позицию можно перетаскивать в меню. */
 public abstract class HudModule extends Module {
     public static final int PADDING = 4;
-    public static final int BACKGROUND = 0x90101018;
-    public static final int TEXT = 0xFFECECF4;
-    public static final int ACCENT = 0xFFA78BFA;
+    public static final int BACKGROUND = Theme.HUD;
+    public static final int TEXT = Theme.TEXT;
+    public static final int RADIUS = 4;
 
     private int x;
     private int y;
@@ -35,6 +37,16 @@ public abstract class HudModule extends Module {
     public void setPosition(int x, int y) {
         this.x = Math.max(0, x);
         this.y = Math.max(0, y);
+    }
+
+    /** Текущий цвет акцента из модуля «Тема». */
+    protected static int accent() {
+        return Theme.accent();
+    }
+
+    /** Скруглённая подложка блока. */
+    protected static void panel(GuiGraphicsExtractor g, int x, int y, int w, int h) {
+        Draw.round(g, x, y, w, h, RADIUS, BACKGROUND);
     }
 
     public abstract int width(Minecraft mc);

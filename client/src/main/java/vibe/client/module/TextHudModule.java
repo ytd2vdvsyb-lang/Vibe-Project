@@ -26,7 +26,8 @@ public abstract class TextHudModule extends HudModule {
     public void render(GuiGraphicsExtractor g, Minecraft mc) {
         String text = text(mc);
         int w = mc.font.width(text) + PADDING * 2;
-        g.fill(x(), y(), x() + w, y() + height(mc), BACKGROUND);
+        panel(g, x(), y(), w, height(mc));
+        g.fill(x() + 1, y() + 3, x() + 2, y() + height(mc) - 3, accent());
         g.text(mc.font, Component.literal(text), x() + PADDING, y() + PADDING, TEXT, true);
     }
 }

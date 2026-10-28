@@ -24,6 +24,6 @@ public abstract class TitleScreenMixin {
         }
         Minecraft mc = Minecraft.getInstance();
         String text = VibeClient.NAME + " " + VibeClient.version();
-        graphics.text(mc.font, Component.literal(text), 4, 4, HudModule.ACCENT, true);
+        graphics.text(mc.font, Component.literal(text), 4, 4, vibe.client.gui.Theme.accent(), true);
     }
 }

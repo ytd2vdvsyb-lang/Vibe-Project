@@ -51,7 +51,7 @@ public final class EffectsHud extends HudModule {
     public void render(GuiGraphicsExtractor g, Minecraft mc) {
         List<String> lines = lines(mc);
         if (lines.isEmpty()) return;
-        g.fill(x(), y(), x() + width(mc), y() + height(mc), BACKGROUND);
+        panel(g, x(), y(), width(mc), height(mc));
         int lineY = y() + PADDING;
         for (String line : lines) {
             g.text(mc.font, Component.literal(line), x() + PADDING, lineY, TEXT, true);

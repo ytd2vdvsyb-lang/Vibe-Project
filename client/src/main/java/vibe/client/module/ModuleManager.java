@@ -28,6 +28,7 @@ import vibe.client.module.hud.FpsHud;
 import vibe.client.module.hud.KeystrokesHud;
 import vibe.client.module.hud.ModuleListHud;
 import vibe.client.module.hud.TargetHud;
+import vibe.client.module.hud.ThemeModule;
 import vibe.client.module.hud.WatermarkHud;
 
 import java.util.List;
@@ -45,6 +46,7 @@ public final class ModuleManager {
             new EffectsHud(),
             new ModuleListHud(),
             new TargetHud(),
+            new ThemeModule(),
             new ToggleSprint(),
             new AutoRespawn(),
             new DeathCoords(),
