@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "vibe.client.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "HudMixin",
+    "KeyboardHandlerMixin",
+    "MinecraftMixin",
+    "TitleScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

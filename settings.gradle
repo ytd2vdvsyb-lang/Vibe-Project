@@ -1,3 +1,19 @@
+pluginManagement {
+    repositories {
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'vibe-client'
 
 include 'launcher'
+
+// Клиенту при сборке нужны серверы Mojang и Fabric. Без них: ./gradlew build -PskipClient
+if (!providers.gradleProperty('skipClient').present) {
+    include 'client'
+}

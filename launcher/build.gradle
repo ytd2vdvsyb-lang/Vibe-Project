@@ -3,15 +3,19 @@ plugins {
     id 'application'
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release = 17
+}
+
+// Собранный клиент вшивается в лаунчер и при запуске кладётся в mods.
+if (findProject(':client') != null) {
+    processResources {
+        from(project(':client').tasks.named('jar')) {
+            into 'client'
+            rename { 'vibe-client.jar' }
+        }
+    }
 }
 
 dependencies {
