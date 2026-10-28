@@ -13,8 +13,15 @@ import vibe.client.module.HudModule;
 
 @Mixin(TitleScreen.class)
 public abstract class TitleScreenMixin {
+    private static boolean vibe$logged;
+
     @Inject(method = "extractRenderState", at = @At("TAIL"))
     private void vibe$branding(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+        if (!vibe$logged) {
+            vibe$logged = true;
+            // По этой строке автотест в CI понимает, что игра дошла до главного меню.
+            VibeClient.LOG.info("Главное меню открыто");
+        }
         Minecraft mc = Minecraft.getInstance();
         String text = VibeClient.NAME + " " + VibeClient.version();
         graphics.text(mc.font, Component.literal(text), 4, 4, HudModule.ACCENT, true);

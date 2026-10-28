@@ -46,15 +46,18 @@ jobs:
       # которые компилятор не видит.
       - name: Smoke test (start the game)
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb mesa-utils > /dev/null
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0 > /dev/null
+          export LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=4.6 SDL_VIDEODRIVER=x11
           set +e
-          timeout 300 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew :client:runClient --no-daemon > run.log 2>&1
+          xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render -noreset" glxinfo -B | head -20
+          timeout 300 xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render -noreset" ./gradlew :client:runClient --no-daemon > run.log 2>&1
           set -e
           echo "----- important lines -----"
-          grep -E "Vibe Client|Mixin|mixin|Exception|ERROR|Caused by|Sound engine|Backend library|OpenGL" run.log | grep -v DEBUG | head -80
+          grep -E "Vibe Client|Mixin|mixin|Exception|ERROR|Caused by|Sound engine|Backend|OpenGL|Главное меню" run.log | grep -v DEBUG | head -80
           echo "----- tail -----"
           tail -40 run.log
           grep -q "Vibe Client .* загружен" run.log
+          grep -q "Главное меню открыто" run.log
           ! grep -qE "MixinApplyError|InvalidInjectionException|Mixin transformation of .* failed|Minecraft has crashed|---- Minecraft Crash Report" run.log
 
       - uses: actions/upload-artifact@v4
