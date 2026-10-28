@@ -19,5 +19,5 @@ for cls in \
   net.minecraft.SharedConstants \
   net.minecraft.WorldVersion; do
   echo "=== $cls"
-  javap -cp "$jar" "$cls" 2>&1 | grep -vE 'lambda\$' | head -150
+  javap -p -cp "$jar" "$cls" 2>&1 | grep -vE 'lambda\$' | head -150
 done

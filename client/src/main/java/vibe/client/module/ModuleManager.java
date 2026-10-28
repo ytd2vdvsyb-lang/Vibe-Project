@@ -32,7 +32,7 @@ public final class ModuleManager {
 
     /** Вызывается из HudMixin каждый кадр. */
     public void renderHud(GuiGraphicsExtractor g, Minecraft mc) {
-        if (mc.options.hideGui || mc.player == null) return;
+        if (mc.gui.hud.isHidden() || mc.player == null) return;
         cps.sample(mc);
         for (Module module : modules) {
             if (module instanceof HudModule hud && hud.isEnabled()) hud.render(g, mc);

@@ -23,13 +23,21 @@ jobs:
           echo "Minecraft: $(curl -s https://piston-meta.mojang.com/mc/game/version_manifest_v2.json | jq -c .latest)"
           echo "Fabric game versions: $(curl -s https://meta.fabricmc.net/v2/versions/game | jq -c '[.[] | select(.stable)][0:3] | map(.version)')"
           echo "Fabric loader: $(curl -s https://meta.fabricmc.net/v2/versions/loader | jq -r '.[0].version')"
+          echo "Fabric API: $(curl -s https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml | grep -oE '<version>[^<]+</version>' | sed -E 's/<\/?version>//g' | tail -5 | tr '\n' ' ')"
 
       - name: Build
-        run: ./gradlew build --stacktrace
+        run: |
+          set -o pipefail
+          ./gradlew build 2>&1 | tee build.log
 
+      # Короткая сводка в самом конце лога, чтобы ошибки было легко найти.
       - name: Dump Minecraft API signatures
         if: failure()
         run: tools/dump-api.sh
+
+      - name: Error summary
+        if: failure()
+        run: grep -E -A4 'error:|What went wrong' build.log | head -150
 
       - uses: actions/upload-artifact@v4
         with:
