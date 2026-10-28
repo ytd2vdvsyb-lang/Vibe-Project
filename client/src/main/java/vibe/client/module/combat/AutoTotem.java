@@ -4,18 +4,19 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.Items;
-import vibe.client.module.CombatModule;
+import vibe.client.module.Category;
+import vibe.client.module.CheatModule;
 
 /** Держит тотем бессмертия во второй руке. */
-public final class AutoTotem extends CombatModule {
+public final class AutoTotem extends CheatModule {
     private static final int OFFHAND_BUTTON = 40;
 
     public AutoTotem() {
-        super("auto_totem", "Авто-тотем", "Кладёт тотем во вторую руку");
+        super("auto_totem", "AutoTotem", "Кладёт тотем во вторую руку", Category.COMBAT);
     }
 
     @Override
-    protected void combatTick(Minecraft mc) {
+    protected void cheatTick(Minecraft mc) {
         if (mc.gui.screen() != null || mc.player.getOffhandItem().is(Items.TOTEM_OF_UNDYING)) return;
         Inventory inventory = mc.player.getInventory();
         for (int i = 0; i < 36; i++) {

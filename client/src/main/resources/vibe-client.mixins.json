@@ -4,8 +4,10 @@
   "package": "vibe.client.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
+    "ClientPacketListenerMixin",
     "HudMixin",
     "KeyboardHandlerMixin",
+    "LocalPlayerMixin",
     "MinecraftMixin",
     "TitleScreenMixin"
   ],

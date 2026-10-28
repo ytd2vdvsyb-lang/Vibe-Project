@@ -8,12 +8,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.phys.Vec3;
 
-import vibe.client.util.Actions;
-
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.function.Predicate;
 
-/** Общие помощники боевых модулей: поиск цели, углы, удар с полной перезарядкой. */
+/** Общие помощники боевых модулей: поиск цели и углы. */
 final class Targets {
     private Targets() {
     }
@@ -23,11 +22,12 @@ final class Targets {
                 && !(living instanceof ArmorStand) && !living.isSpectator() && !living.isInvisible();
     }
 
-    /** Ближайшая живая цель в радиусе, не дальше {@code maxAngle} градусов от прицела. */
-    static Optional<LivingEntity> nearest(Minecraft mc, double range, float maxAngle) {
+    /** Ближайшая подходящая цель в радиусе, не дальше {@code maxAngle} градусов от прицела. */
+    static Optional<LivingEntity> nearest(Minecraft mc, double range, float maxAngle, Predicate<LivingEntity> filter) {
         LocalPlayer self = mc.player;
         return mc.level.getEntitiesOfClass(LivingEntity.class, self.getBoundingBox().inflate(range),
-                        e -> valid(self, e) && self.distanceTo(e) <= range && angleTo(self, e) <= maxAngle)
+                        e -> valid(self, e) && filter.test(e) && self.distanceTo(e) <= range
+                                && angleTo(self, e) <= maxAngle)
                 .stream()
                 .min(Comparator.comparingDouble(self::distanceTo));
     }
@@ -49,11 +49,13 @@ final class Targets {
         return (float) Math.sqrt(dYaw * dYaw + dPitch * dPitch);
     }
 
-    static boolean cooledDown(LocalPlayer self) {
-        return self.getAttackStrengthScale(0.5f) >= 1f;
-    }
-
-    static void attack(Minecraft mc, Entity target) {
-        Actions.attack(mc, target);
+    /** Поворачивает голову к цели на долю {@code speed} (1 = сразу). Возвращает угол, что остался. */
+    static float turnTowards(LocalPlayer self, Entity target, float speed) {
+        float[] rot = rotationTo(self, target);
+        float yaw = self.getYRot();
+        float pitch = self.getXRot();
+        self.setYRot(yaw + Mth.wrapDegrees(rot[0] - yaw) * speed);
+        self.setXRot(pitch + (rot[1] - pitch) * speed);
+        return angleTo(self, target);
     }
 }

@@ -3,6 +3,12 @@
 set -u
 jar=$(find ~/.gradle/caches -name 'minecraft-*client*.jar' -o -name 'minecraft-merged*.jar' 2>/dev/null | grep -v sources | head -1)
 [ -n "$jar" ] || exit 0
+echo "### all minecraft jars"
+for j in $(find ~/.gradle/caches -name 'minecraft*.jar' 2>/dev/null | grep -v sources); do
+  echo "$j"
+  javap -p -cp "$j" net.minecraft.world.entity.LivingEntity 2>/dev/null | grep -E ' swing\(' | sed 's/^/    /'
+done
+echo "using: $jar"
 echo "### classes"
 unzip -Z1 "$jar" | grep -E '\.class$' | grep -v '\$' | sed 's/\.class$//; s#/#.#g' \
   | grep -E 'SwingAnimation|SetEntityMotion|Explode|MovePlayer|PlayerCommand|PlayerAbilities|ClientPacketListener|LevelRenderer|ShapeRenderer|Gizmo|DataComponents$|MultiPlayerGameMode|ClientCommonPacketListener|EntityRenderDispatcher|OutlineBufferSource' 

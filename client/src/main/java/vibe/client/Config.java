@@ -6,13 +6,14 @@ import com.google.gson.JsonObject;
 import vibe.client.module.HudModule;
 import vibe.client.module.Module;
 import vibe.client.module.ModuleManager;
+import vibe.client.setting.Setting;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-/** Сохраняет включённые модули и позиции HUD в config/vibe-client.json. */
+/** Сохраняет модули, их настройки, клавиши и позиции HUD в config/vibe-client.json. */
 final class Config {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private final Path file;
@@ -29,6 +30,16 @@ final class Config {
                 if (!root.has(module.id())) continue;
                 JsonObject data = root.getAsJsonObject(module.id());
                 if (data.has("enabled")) module.setEnabled(data.get("enabled").getAsBoolean());
+                if (data.has("key")) module.setKey(data.get("key").getAsInt());
+                JsonObject settings = data.has("settings") ? data.getAsJsonObject("settings") : new JsonObject();
+                for (Setting<?> setting : module.settings()) {
+                    if (!settings.has(setting.name())) continue;
+                    try {
+                        setting.fromJson(settings.get(setting.name()));
+                    } catch (RuntimeException e) {
+                        VibeClient.LOG.warn("Пропускаю настройку {}.{}", module.id(), setting.name());
+                    }
+                }
                 if (module instanceof HudModule hud && data.has("x") && data.has("y")) {
                     hud.setPosition(data.get("x").getAsInt(), data.get("y").getAsInt());
                 }
@@ -43,6 +54,10 @@ final class Config {
         for (Module module : modules.all()) {
             JsonObject data = new JsonObject();
             data.addProperty("enabled", module.isEnabled());
+            data.addProperty("key", module.key());
+            JsonObject settings = new JsonObject();
+            for (Setting<?> setting : module.settings()) settings.add(setting.name(), setting.toJson());
+            data.add("settings", settings);
             if (module instanceof HudModule hud) {
                 data.addProperty("x", hud.x());
                 data.addProperty("y", hud.y());

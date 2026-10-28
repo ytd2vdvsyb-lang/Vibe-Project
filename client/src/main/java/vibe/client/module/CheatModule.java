@@ -4,12 +4,25 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
 /**
- * Боевой модуль: работает только там, где разрешает {@link ServerGuard}.
+ * Чит-модуль: работает только там, где разрешает {@link ServerGuard}.
  * На остальных серверах выключается сам и не даёт себя включить.
  */
-public abstract class CombatModule extends Module {
-    protected CombatModule(String id, String name, String description) {
+public abstract class CheatModule extends Module {
+    private final Category category;
+
+    protected CheatModule(String id, String name, String description, Category category) {
         super(id, name, description + " (только одиночка и HvH)", false);
+        this.category = category;
+    }
+
+    @Override
+    public Category category() {
+        return category;
+    }
+
+    /** Можно ли сейчас работать чит-модулям. */
+    public static boolean allowed(Minecraft mc) {
+        return mc.player != null && ServerGuard.combatAllowed(mc);
     }
 
     @Override
@@ -23,6 +36,11 @@ public abstract class CombatModule extends Module {
         super.setEnabled(enabled);
     }
 
+    /** Включён и разрешён прямо сейчас: для проверок из миксинов. */
+    public boolean active(Minecraft mc) {
+        return isEnabled() && allowed(mc);
+    }
+
     @Override
     public final void tick(Minecraft mc) {
         if (mc.player == null) return;
@@ -30,8 +48,9 @@ public abstract class CombatModule extends Module {
             super.setEnabled(false);
             return;
         }
-        combatTick(mc);
+        cheatTick(mc);
     }
 
-    protected abstract void combatTick(Minecraft mc);
+    protected void cheatTick(Minecraft mc) {
+    }
 }

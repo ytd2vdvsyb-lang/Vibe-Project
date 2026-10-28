@@ -1,28 +1,31 @@
 package vibe.client.module.combat;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.Mth;
-import vibe.client.module.CombatModule;
+import vibe.client.module.Category;
+import vibe.client.module.CheatModule;
+import vibe.client.setting.BoolSetting;
+import vibe.client.setting.NumberSetting;
 
 /** Плавно доводит прицел до ближайшей цели перед тобой: удобно с тачпадом. */
-public final class AimAssist extends CombatModule {
-    private static final double RANGE = 4.5;
-    private static final float FOV = 60f;
-    private static final float SPEED = 0.25f;
+public final class AimAssist extends CheatModule {
+    private final TargetSettings targets = new TargetSettings();
+    private final NumberSetting range = add(new NumberSetting("Радиус", 4.5, 2.0, 8.0, 0.5));
+    private final NumberSetting fov = add(new NumberSetting("Угол обзора", 60, 10, 180, 5));
+    private final NumberSetting speed = add(new NumberSetting("Скорость", 0.25, 0.05, 1.0, 0.05));
+    private final BoolSetting onlyAttacking = add(new BoolSetting("Только при атаке", false));
 
     public AimAssist() {
-        super("aim_assist", "Доводка прицела", "Плавно наводит на цель в пределах 60°");
+        super("aim_assist", "AimAssist", "Плавно наводит прицел на цель", Category.COMBAT);
+        add(targets.players);
+        add(targets.monsters);
+        add(targets.others);
     }
 
     @Override
-    protected void combatTick(Minecraft mc) {
+    protected void cheatTick(Minecraft mc) {
         if (mc.gui.screen() != null) return;
-        Targets.nearest(mc, RANGE, FOV).ifPresent(target -> {
-            float[] rot = Targets.rotationTo(mc.player, target);
-            float yaw = mc.player.getYRot();
-            float pitch = mc.player.getXRot();
-            mc.player.setYRot(yaw + Mth.wrapDegrees(rot[0] - yaw) * SPEED);
-            mc.player.setXRot(pitch + (rot[1] - pitch) * SPEED);
-        });
+        if (onlyAttacking.on() && !mc.options.keyAttack.isDown()) return;
+        Targets.nearest(mc, range.get(), fov.floatValue(), targets)
+                .ifPresent(target -> Targets.turnTowards(mc.player, target, speed.floatValue()));
     }
 }

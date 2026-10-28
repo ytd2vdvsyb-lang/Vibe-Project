@@ -19,6 +19,11 @@ public abstract class HudModule extends Module {
         this.y = y;
     }
 
+    @Override
+    public Category category() {
+        return Category.HUD;
+    }
+
     public int x() {
         return x;
     }

@@ -6,7 +6,12 @@ import net.minecraft.client.player.LocalPlayer;
 /** Бег без зажатия Ctrl, как опция "Переключение бега" в настройках, но включается одной кнопкой. */
 public final class ToggleSprint extends Module {
     public ToggleSprint() {
-        super("toggle_sprint", "Авто-бег", "Бежать, пока идёшь вперёд", false);
+        super("toggle_sprint", "Sprint", "Бежать, пока идёшь вперёд", false);
+    }
+
+    @Override
+    public Category category() {
+        return Category.MOVEMENT;
     }
 
     @Override
