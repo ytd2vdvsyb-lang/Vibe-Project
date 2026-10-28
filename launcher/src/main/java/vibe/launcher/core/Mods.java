@@ -19,6 +19,8 @@ public final class Mods {
     static final String FABRIC_API_PROJECT = "P7dR8mSH";
     /** Jar клиента, который вшивается в лаунчер при сборке. */
     static final String BUNDLED_CLIENT = "/client/vibe-client.jar";
+    /** Свежий клиент из релиза nightly: лаунчер берёт его сам, переустанавливать приложение не нужно. */
+    static final String UPDATE_URL = "https://github.com/ytd2vdvsyb-lang/Vibe-Project/releases/download/nightly/vibe-client.jar";
 
     private final Path modsDir;
 
@@ -65,6 +67,16 @@ public final class Mods {
         if (override != null) {
             Files.copy(override, target, StandardCopyOption.REPLACE_EXISTING);
             return;
+        }
+        try {
+            // Рядом с jar лежит его sha1: файл скачивается только если клиент на GitHub поменялся.
+            String sha1 = Http.getString(UPDATE_URL + ".sha1").trim().split("\\s+")[0];
+            progress.status("Проверяю обновление клиента");
+            Http.download(UPDATE_URL, target, sha1, -1);
+            progress.log("Клиент Vibe Client: свежая сборка с GitHub (" + sha1.substring(0, 7) + ")");
+            return;
+        } catch (IOException | RuntimeException e) {
+            progress.log("Обновление клиента недоступно (" + e.getMessage() + "), беру встроенный в лаунчер");
         }
         try (InputStream in = Mods.class.getResourceAsStream(BUNDLED_CLIENT)) {
             if (in == null) {

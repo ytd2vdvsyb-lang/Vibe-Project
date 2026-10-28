@@ -14,7 +14,8 @@
 2. Ставит Fabric Loader для этой версии (meta.fabricmc.net).
 3. Скачивает jar игры, библиотеки, ресурсы, проверяя sha1.
 4. Скачивает нужную Java от Mojang, ставить Java вручную не надо.
-5. Кладёт в `mods/` Fabric API (с Modrinth) и сам Vibe Client.
+5. Кладёт в `mods/` Fabric API (с Modrinth) и сам Vibe Client: свежий `vibe-client.jar` из релиза nightly
+   (если репозиторий публичный), иначе тот, что вшит в лаунчер.
 6. Запускает игру. Лог видно по кнопке «Открыть лог».
 
 Всё хранится отдельно от обычного Minecraft:

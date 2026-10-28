@@ -190,12 +190,16 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           find artifacts -type f
+          # Отдельный jar клиента для автообновления в лаунчере (тот же, что вшит в лаунчер).
+          unzip -p artifacts/VibeClient/launcher/build/libs/VibeLauncher.jar client/vibe-client.jar > vibe-client.jar
+          sha1sum vibe-client.jar | cut -d' ' -f1 > vibe-client.jar.sha1
           gh release delete nightly --yes --cleanup-tag || true
           gh release create nightly --prerelease --target "${{ github.sha }}" \
             --title "Vibe Client (свежая сборка)" \
             --notes "Автосборка из ${{ github.sha }}. macOS: VibeClient-mac.zip (распаковать и перетащить в Программы) или VibeClient.dmg, когда он появится. Другие системы: VibeLauncher.jar (нужна Java 17+)." \
             artifacts/VibeClient-mac-app/VibeClient-mac.zip \
-            artifacts/VibeClient/launcher/build/libs/VibeLauncher.jar
+            artifacts/VibeClient/launcher/build/libs/VibeLauncher.jar \
+            vibe-client.jar vibe-client.jar.sha1
 
   # Приложение для macOS со встроенной Java: Java ставить не нужно.
   # Mac-серверов на GitHub бывает мало: dmg собирается после релиза и докладывается в него,
