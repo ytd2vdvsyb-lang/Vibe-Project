@@ -77,12 +77,16 @@ jobs:
           export LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=4.6 SDL_VIDEODRIVER=x11 SDL_VIDEO_FORCE_EGL=1 SDL_VIDEO_X11_FORCE_EGL=1 EGL_PLATFORM=x11
           set +e
           xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render -noreset" sh -c "glxinfo -B | head -20; glxinfo -v | grep -m3 -i visual"
-          timeout 300 xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render -noreset" ./gradlew :client:runClient --no-daemon > run.log 2>&1
+          # Если игра застрянет, через 7 минут печатаем дамп потоков, чтобы было видно где.
+          (sleep 420; pkill -QUIT -f devlaunchinjector || true) &
+          timeout 600 xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render -noreset" ./gradlew :client:runClient --no-daemon > run.log 2>&1
           set -e
           echo "----- important lines -----"
-          grep -E "Vibe Client|Mixin|mixin|Exception|ERROR|Caused by|Sound engine|Backend|OpenGL|Главное меню" run.log | grep -v DEBUG | head -80
+          grep -E "Vibe Client|ViaFabricPlus|Mixin|mixin|Exception|ERROR|Caused by|Sound engine|Backend|OpenGL|Главное меню" run.log | grep -v DEBUG | head -80
           echo "----- tail -----"
           tail -40 run.log
+          echo "----- render thread -----"
+          grep -A40 '"Render thread"' run.log | head -60 || true
           grep -q "Vibe Client .* загружен" run.log
           grep -q "Главное меню открыто" run.log
           ! grep -qE "MixinApplyError|InvalidInjectionException|Mixin transformation of .* failed|Minecraft has crashed|---- Minecraft Crash Report" run.log
