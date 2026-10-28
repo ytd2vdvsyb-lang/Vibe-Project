@@ -21,6 +21,17 @@ public final class Settings {
     public String javaPath = "";
     public String extraJvmArgs = "";
     public boolean closeOnLaunch = false;
+    /** Client id приложения Azure для входа через Microsoft. Можно задать и через -Dvibe.msClientId. */
+    public String msClientId = "";
+    /** Refresh token Microsoft. Пусто = офлайн-аккаунт по нику. */
+    public String microsoftRefreshToken = "";
+    /** Ник лицензионного аккаунта, только для показа в лаунчере. */
+    public String microsoftName = "";
+
+    public String effectiveMsClientId() {
+        String fromProperty = System.getProperty("vibe.msClientId", "");
+        return fromProperty.isBlank() ? msClientId : fromProperty;
+    }
 
     public static Settings load(GameDirs dirs) {
         Path file = file(dirs);

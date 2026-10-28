@@ -37,7 +37,22 @@ jobs:
 
       - name: Error summary
         if: failure()
-        run: grep -E -A4 'error:|What went wrong' build.log | head -150
+        run: grep -E -A4 'error:|What went wrong' build.log | head -150 || true
+
+      # Запускаем игру с клиентом в виртуальном экране: так ловятся ошибки миксинов,
+      # которые компилятор не видит.
+      - name: Smoke test (start the game)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb mesa-utils > /dev/null
+          set +e
+          timeout 300 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew :client:runClient --no-daemon > run.log 2>&1
+          set -e
+          echo "----- important lines -----"
+          grep -E "Vibe Client|Mixin|mixin|Exception|ERROR|Caused by|Sound engine|Backend library|OpenGL" run.log | grep -v DEBUG | head -80
+          echo "----- tail -----"
+          tail -40 run.log
+          grep -q "Vibe Client .* загружен" run.log
+          ! grep -qE "MixinApplyError|InvalidInjectionException|Mixin transformation of .* failed|Minecraft has crashed|---- Minecraft Crash Report" run.log
 
       - uses: actions/upload-artifact@v4
         with:

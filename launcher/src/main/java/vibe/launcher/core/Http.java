@@ -38,6 +38,75 @@ public final class Http {
         return JsonParser.parseString(getString(url));
     }
 
+    /** GET с заголовком Authorization: Bearer. */
+    public static JsonElement getJson(String url, String bearer) throws IOException {
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                .header("User-Agent", USER_AGENT)
+                .header("Authorization", "Bearer " + bearer)
+                .timeout(Duration.ofSeconds(30))
+                .GET()
+                .build();
+        return JsonParser.parseString(sendRequest(request).body());
+    }
+
+    public static JsonElement postJson(String url, JsonElement body) throws IOException {
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                .header("User-Agent", USER_AGENT)
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(30))
+                .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                .build();
+        return JsonParser.parseString(sendRequest(request).body());
+    }
+
+    /** POST формы. Ответ возвращается даже при коде 4xx: OAuth присылает в нём описание ошибки. */
+    public static JsonElement postForm(String url, java.util.Map<String, String> form) throws IOException {
+        StringBuilder body = new StringBuilder();
+        for (var entry : form.entrySet()) {
+            if (body.length() > 0) body.append('&');
+            body.append(java.net.URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8)).append('=')
+                    .append(java.net.URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
+        }
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                .header("User-Agent", USER_AGENT)
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .timeout(Duration.ofSeconds(30))
+                .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                .build();
+        try {
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            return JsonParser.parseString(response.body());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Запрос прерван", e);
+        }
+    }
+
+    private static HttpResponse<String> sendRequest(HttpRequest request) throws IOException {
+        try {
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (response.statusCode() / 100 != 2) {
+                throw new HttpStatusException(response.statusCode(), request.uri().toString(), response.body());
+            }
+            return response;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Запрос прерван", e);
+        }
+    }
+
+    public static final class HttpStatusException extends IOException {
+        public final int status;
+        public final String body;
+
+        HttpStatusException(int status, String url, String body) {
+            super("HTTP " + status + " для " + url);
+            this.status = status;
+            this.body = body;
+        }
+    }
+
     /**
      * Скачивает файл, если его ещё нет или он не совпадает по sha1/размеру.
      * sha1 может быть null, size может быть -1.

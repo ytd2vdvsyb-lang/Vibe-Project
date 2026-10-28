@@ -22,11 +22,18 @@ public final class GameLaunch {
     private final Settings settings;
     private final Progress progress;
     private Path clientOverride;
+    private Account account;
 
     public GameLaunch(GameDirs dirs, Settings settings, Progress progress) {
         this.dirs = dirs;
         this.settings = settings;
         this.progress = progress;
+    }
+
+    /** Аккаунт для запуска. Если не задан, берётся офлайн-аккаунт по нику из настроек. */
+    public GameLaunch account(Account account) {
+        this.account = account;
+        return this;
     }
 
     /** Для разработки: запустить конкретный jar клиента вместо вшитого. */
@@ -40,7 +47,7 @@ public final class GameLaunch {
      *               тогда вывод игры пишется в файл, а не в окно лаунчера.
      */
     public Process start(boolean detach) throws IOException {
-        Account account = Account.offline(settings.username);
+        Account account = this.account != null ? this.account : Account.offline(settings.username);
 
         progress.status("Получаю список версий");
         Versions versions = new Versions(dirs);

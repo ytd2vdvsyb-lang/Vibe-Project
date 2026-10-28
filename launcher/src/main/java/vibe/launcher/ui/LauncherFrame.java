@@ -3,6 +3,7 @@ package vibe.launcher.ui;
 import vibe.launcher.core.Account;
 import vibe.launcher.core.GameDirs;
 import vibe.launcher.core.GameLaunch;
+import vibe.launcher.core.MicrosoftAuth;
 import vibe.launcher.core.Progress;
 import vibe.launcher.core.Settings;
 import vibe.launcher.core.Versions;
@@ -49,6 +50,7 @@ public final class LauncherFrame extends JFrame {
     private final JProgressBar progressBar = new JProgressBar();
     private final JLabel statusLabel = label(" ", Theme.MUTED, 13);
     private final JTextArea logArea = new JTextArea();
+    private final JButton microsoftButton = linkButton("");
 
     public LauncherFrame(GameDirs dirs) {
         super("Vibe Client");
@@ -94,8 +96,17 @@ public final class LauncherFrame extends JFrame {
         nameField.setText(settings.username);
         nameField.setBorder(Theme.fieldBorder());
         nameField.setCaretColor(Theme.TEXT);
-        c.insets = new Insets(0, 0, 18, 0);
+        c.insets = new Insets(0, 0, 2, 0);
         form.add(nameField, c);
+        microsoftButton.addActionListener(e -> {
+            if (settings.microsoftRefreshToken.isBlank()) loginMicrosoft(); else logoutMicrosoft();
+        });
+        c.insets = new Insets(0, -14, 10, 0);
+        c.fill = GridBagConstraints.NONE;
+        c.anchor = GridBagConstraints.WEST;
+        form.add(microsoftButton, c);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        updateAccountUi();
 
         c.insets = new Insets(0, 0, 6, 0);
         form.add(label("Версия Minecraft", Theme.MUTED, 13), c);
@@ -143,13 +154,7 @@ public final class LauncherFrame extends JFrame {
         c.weighty = 0;
         c.fill = GridBagConstraints.NONE;
         c.anchor = GridBagConstraints.WEST;
-        JButton logButton = new JButton("Открыть лог");
-        logButton.setContentAreaFilled(false);
-        logButton.setBorderPainted(false);
-        logButton.setFocusPainted(false);
-        logButton.setForeground(Theme.MUTED);
-        logButton.setFont(Theme.font(Font.PLAIN, 12));
-        logButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        JButton logButton = linkButton("Открыть лог");
         logButton.addActionListener(e -> showLog());
         c.insets = new Insets(0, -14, 0, 0);
         form.add(logButton, c);
@@ -185,12 +190,13 @@ public final class LauncherFrame extends JFrame {
     }
 
     private void play() {
+        boolean microsoft = !settings.microsoftRefreshToken.isBlank();
         String name = nameField.getText().trim();
-        if (!Account.isValidName(name)) {
+        if (!microsoft && !Account.isValidName(name)) {
             setStatus("Ник: 3-16 символов, латиница, цифры и _", true);
             return;
         }
-        settings.username = name;
+        if (!microsoft) settings.username = name;
         settings.memoryMb = memorySlider.getValue() * 1024;
         settings.closeOnLaunch = closeOnLaunch.isSelected();
         VersionItem selected = (VersionItem) versionBox.getSelectedItem();
@@ -209,7 +215,18 @@ public final class LauncherFrame extends JFrame {
         new SwingWorker<Process, Void>() {
             @Override
             protected Process doInBackground() throws Exception {
-                return new GameLaunch(dirs, settings, uiProgress()).start(detach);
+                Progress progress = uiProgress();
+                GameLaunch launch = new GameLaunch(dirs, settings, progress);
+                if (microsoft) {
+                    progress.status("Вход в аккаунт Microsoft");
+                    MicrosoftAuth.Session session = new MicrosoftAuth(settings.effectiveMsClientId())
+                            .refresh(settings.microsoftRefreshToken);
+                    settings.microsoftRefreshToken = session.refreshToken();
+                    settings.microsoftName = session.account().name();
+                    settings.save(dirs);
+                    launch.account(session.account());
+                }
+                return launch.start(detach);
             }
 
             @Override
@@ -235,6 +252,86 @@ public final class LauncherFrame extends JFrame {
                 }
             }
         }.execute();
+    }
+
+    private void loginMicrosoft() {
+        String clientId = settings.effectiveMsClientId();
+        if (clientId.isBlank()) {
+            setStatus("Вход через Microsoft ещё не настроен (нет client id)", true);
+            return;
+        }
+        microsoftButton.setEnabled(false);
+        JDialog dialog = new JDialog(this, "Вход через Microsoft", false);
+        JLabel text = label("Получаю код...", Theme.TEXT, 14);
+        text.setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
+        dialog.setContentPane(text);
+        dialog.setSize(460, 170);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+
+        new SwingWorker<MicrosoftAuth.Session, Void>() {
+            @Override
+            protected MicrosoftAuth.Session doInBackground() throws Exception {
+                return new MicrosoftAuth(clientId).login(code -> SwingUtilities.invokeLater(() -> {
+                    text.setText("<html>Открой <b>" + code.verificationUri() + "</b><br>и введи код <b style='font-size:16px'>"
+                            + code.userCode() + "</b><br><br>Код уже скопирован, страница откроется сама.</html>");
+                    copyToClipboard(code.userCode());
+                    openBrowser(code.verificationUri());
+                }));
+            }
+
+            @Override
+            protected void done() {
+                dialog.dispose();
+                microsoftButton.setEnabled(true);
+                try {
+                    MicrosoftAuth.Session session = get();
+                    settings.microsoftRefreshToken = session.refreshToken();
+                    settings.microsoftName = session.account().name();
+                    settings.save(dirs);
+                    setStatus("Вошёл как " + session.account().name(), false);
+                } catch (Exception e) {
+                    setStatus("Не удалось войти: " + rootMessage(e), true);
+                    appendLog("ОШИБКА входа: " + e);
+                }
+                updateAccountUi();
+            }
+        }.execute();
+    }
+
+    private void logoutMicrosoft() {
+        settings.microsoftRefreshToken = "";
+        settings.microsoftName = "";
+        try {
+            settings.save(dirs);
+        } catch (Exception e) {
+            appendLog("Не удалось сохранить настройки: " + e);
+        }
+        updateAccountUi();
+    }
+
+    private void updateAccountUi() {
+        boolean microsoft = !settings.microsoftRefreshToken.isBlank();
+        nameField.setEnabled(!microsoft);
+        nameField.setText(microsoft ? settings.microsoftName : settings.username);
+        microsoftButton.setText(microsoft ? "Выйти из аккаунта Microsoft" : "Войти через Microsoft (лицензия)");
+    }
+
+    private static void copyToClipboard(String text) {
+        try {
+            java.awt.Toolkit.getDefaultToolkit().getSystemClipboard()
+                    .setContents(new java.awt.datatransfer.StringSelection(text), null);
+        } catch (RuntimeException ignored) {
+            // Буфер обмена недоступен, код всё равно виден в окне.
+        }
+    }
+
+    private static void openBrowser(String url) {
+        try {
+            if (java.awt.Desktop.isDesktopSupported()) java.awt.Desktop.getDesktop().browse(java.net.URI.create(url));
+        } catch (Exception ignored) {
+            // Ссылка видна в окне, игрок откроет её сам.
+        }
     }
 
     private Progress uiProgress() {
@@ -308,6 +405,17 @@ public final class LauncherFrame extends JFrame {
     private static String rootMessage(Throwable e) {
         while (e.getCause() != null) e = e.getCause();
         return e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+    }
+
+    private static JButton linkButton(String text) {
+        JButton button = new JButton(text);
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setForeground(Theme.MUTED);
+        button.setFont(Theme.font(Font.PLAIN, 12));
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        return button;
     }
 
     private static JLabel label(String text, java.awt.Color color, int size) {
