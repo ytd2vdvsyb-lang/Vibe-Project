@@ -14,10 +14,14 @@ for cls in \
   net.minecraft.client.gui.screens.TitleScreen \
   net.minecraft.client.gui.components.Button \
   net.minecraft.client.KeyboardHandler \
+  com.mojang.blaze3d.platform.InputConstants \
+  net.minecraft.client.renderer.GameRenderer \
+  net.minecraft.client.Options \
+  net.minecraft.client.player.LocalPlayer \
   net.minecraft.client.input.KeyEvent \
   net.minecraft.client.input.MouseButtonEvent \
   net.minecraft.SharedConstants \
   net.minecraft.WorldVersion; do
   echo "=== $cls"
-  javap -p -cp "$jar" "$cls" 2>&1 | grep -vE 'lambda\$' | head -150
+  javap -p -cp "$jar" "$cls" 2>&1 | grep -vE 'lambda\$' | head -250
 done
