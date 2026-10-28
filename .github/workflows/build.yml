@@ -5,6 +5,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -60,3 +63,75 @@ jobs:
           path: |
             launcher/build/libs/VibeLauncher.jar
             client/build/libs/vibe-client-*.jar
+
+  # Приложение для macOS со встроенной Java: Java ставить не нужно.
+  macos:
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: VibeClient
+          path: artifact
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Icon
+        run: |
+          mkdir -p icon.iconset
+          for size in 16 32 64 128 256 512; do
+            sips -z $size $size client/src/main/resources/assets/vibe-client/icon.png --out icon.iconset/icon_${size}x${size}.png > /dev/null
+          done
+          iconutil -c icns icon.iconset -o VibeClient.icns
+
+      - name: Package dmg
+        run: |
+          mkdir -p input
+          cp artifact/launcher/build/libs/VibeLauncher.jar input/
+          jpackage --type dmg \
+            --name "Vibe Client" \
+            --app-version 1.0.0 \
+            --vendor "Vibe Client" \
+            --input input \
+            --main-jar VibeLauncher.jar \
+            --main-class vibe.launcher.Main \
+            --icon VibeClient.icns \
+            --java-options "-Dapple.awt.application.name=VibeClient" \
+            --dest dist
+          mv dist/*.dmg dist/VibeClient.dmg
+          ls -la dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VibeClient-macOS
+          path: dist/VibeClient.dmg
+
+  # Свежая сборка в Releases, чтобы скачать по прямой ссылке.
+  release:
+    needs: [build, macos]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/claude/project-thread-47mu48'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Publish nightly release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          find artifacts -type f
+          gh release delete nightly --yes --cleanup-tag || true
+          gh release create nightly --prerelease --target "${{ github.sha }}" \
+            --title "Vibe Client (свежая сборка)" \
+            --notes "Автосборка из ${{ github.sha }}. macOS: VibeClient.dmg. Другие системы: VibeLauncher.jar (нужна Java 17+)." \
+            artifacts/VibeClient-macOS/VibeClient.dmg \
+            artifacts/VibeClient/launcher/build/libs/VibeLauncher.jar
